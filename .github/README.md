@@ -1,15 +1,16 @@
-# 💻 Anmol's Arch Linux Dotfiles
+# ⚡ Archbox Dotfiles
 
-My personal dotfiles for **Arch Linux**, featuring a dual desktop environment (**GNOME** and **Hyprland** with **Dank Material Shell**), modern terminal emulators, dynamic Matugen/Base16 wallpaper theming, and an opinionated **LazyVim** configuration.
+Personal dotfiles for **Archbox**, my Arch Linux workstation. Features a dual desktop setup (**GNOME** and **Hyprland** with **Dank Material Shell**), dynamic Base16/Matugen wallpaper-synced palettes, modern GPU-accelerated terminal emulators, and an opinionated **LazyVim** development environment.
 
 ---
 
-## 🎨 System Overview
+## 🖥️ Machine Specifications & Environment
 
+- **Host**: `archbox`
 - **Operating System**: Arch Linux (Linux Zen Kernel)
-- **Window Management**: Hyprland (Wayland) & GNOME (Wayland)
+- **Desktops**: Hyprland (Wayland) & GNOME (Wayland)
 - **Desktop Shell & Widgets**: Dank Material Shell (QuickShell) & Libadwaita
-- **Editor**: Neovim (LazyVim distribution with hot-reloading dynamic themes)
+- **Editor**: Neovim (LazyVim distribution with hot-reloading theme synchronization)
 - **Shells**: Fish (Primary), Zsh, Bash + Starship Prompt & Zoxide
 - **Terminals**: Kitty, Ghostty, WezTerm, Alacritty
 
