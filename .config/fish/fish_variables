@@ -1,0 +1,10 @@
+# This file contains fish universal variable definitions.
+# VERSION: 3.0
+SETUVAR --export EDITOR:nvim
+SETUVAR --export GODEBUG:http2client\x3d0
+SETUVAR --export PAGER:most
+SETUVAR PROMPT_THEME:posh
+SETUVAR --export VISUAL:nvim
+SETUVAR __fish_initialized:4300
+SETUVAR fish_greeting:
+SETUVAR fish_user_paths:/home/anmol/\x2elocal/share/go/bin\x1e/home/anmol/\x2elocal/bin\x1e/home/anmol/\x2econfig/emacs/bin\x1e/home/anmol/\x2enpm\x2dglobal/bin\x1e/home/linuxbrew/\x2elinuxbrew/sbin\x1e/home/linuxbrew/\x2elinuxbrew/bin\x1e/usr/bin\x1e/home/anmol/\x2eopencode/bin\x1e/home/anmol/\x2ecomposio\x1e/home/anmol/\x2egrok/bin

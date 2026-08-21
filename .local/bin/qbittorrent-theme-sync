@@ -1,0 +1,207 @@
+#!/usr/bin/env python3
+import os
+import subprocess
+import sys
+import re
+import json
+import urllib.parse
+
+QBT_CONF_PATH = os.path.expanduser("~/.config/qBittorrent/qBittorrent.conf")
+QBT_THEMES_DIR = os.path.expanduser("~/.config/qBittorrent/themes")
+ALACRITTY_CONF_PATH = os.path.expanduser("~/.config/alacritty/alacritty.toml")
+KITTY_THEME_PATH = os.path.expanduser("~/.config/kitty/theme.conf")
+WEZTERM_THEME_PATH = os.path.expanduser("~/.config/wezterm/theme.lua")
+NVIM_PALETTE_PATH = os.path.expanduser("~/.config/nvim/lua/dms-palette.lua")
+
+def get_current_desktop_mode():
+    try:
+        res = subprocess.check_output(
+            ["gsettings", "get", "org.gnome.desktop.interface", "color-scheme"],
+            text=True
+        ).strip().strip("'\"")
+        return "dark" if res == "prefer-dark" else "light"
+    except Exception:
+        return "dark"
+
+def get_current_wallpaper():
+    try:
+        uri = subprocess.check_output(
+            ["gsettings", "get", "org.gnome.desktop.background", "picture-uri"],
+            text=True
+        ).strip().strip("'\"")
+        if uri.startswith("file://"):
+            return urllib.parse.unquote(uri[7:])
+        return uri
+    except Exception:
+        return ""
+
+def run_dms_matugen(mode):
+    wall = get_current_wallpaper()
+    if not wall or not os.path.exists(wall):
+        return
+
+    try:
+        # Run DMS Matugen generation for Kitty, Alacritty, GTK, and Hyprland
+        subprocess.run([
+            "dms", "matugen", "generate",
+            "--value", wall,
+            "--kind", "image",
+            "--mode", mode,
+            "--state-dir", os.path.expanduser("~/.local/state/dms"),
+            "--config-dir", os.path.expanduser("~/.config/dms"),
+            "--shell-dir", "/usr/share/quickshell/dms"
+        ], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+        # Extract palette JSON for Neovim LazyVim
+        out = subprocess.check_output([
+            "matugen", "image", "--source-color-index", "0",
+            "-m", mode,
+            "-j", "hex", wall
+        ], text=True)
+        data = json.loads(out)
+        base16 = data.get("base16", {})
+
+        palette_entries = []
+        for i in range(16):
+            k = f"base0{hex(i)[2:].upper()}"
+            color = base16.get(k, {}).get(mode, {}).get("color") or base16.get(k, {}).get("default", {}).get("color", "#ffffff")
+            palette_entries.append(f'  {k} = "{color}",')
+
+        lua_content = "-- Auto-generated Base16 palette by DMS Matugen for Neovim LazyVim\nreturn {\n" + "\n".join(palette_entries) + "\n}\n"
+        with open(NVIM_PALETTE_PATH, "w", encoding="utf-8") as f:
+            f.write(lua_content)
+    except Exception as e:
+        sys.stderr.write(f"Matugen generation error: {e}\n")
+
+def apply_qbittorrent_theme(mode):
+    theme_file = "mumble-dark.qbtheme" if mode == "dark" else "mumble-lite.qbtheme"
+    theme_path = os.path.join(QBT_THEMES_DIR, theme_file)
+
+    if not os.path.exists(QBT_CONF_PATH):
+        return
+
+    try:
+        with open(QBT_CONF_PATH, "r", encoding="utf-8", errors="ignore") as f:
+            lines = f.readlines()
+
+        new_lines = []
+        in_preferences = False
+        has_use_custom = False
+        has_theme_path = False
+
+        for line in lines:
+            stripped = line.strip()
+            if stripped.startswith("[") and stripped.endswith("]"):
+                if in_preferences:
+                    if not has_use_custom:
+                        new_lines.append("General\\UseCustomUITheme=true\n")
+                    if not has_theme_path:
+                        new_lines.append(f"General\\CustomUIThemePath={theme_path}\n")
+                in_preferences = (stripped == "[Preferences]")
+
+            if in_preferences:
+                if stripped.startswith("General\\UseCustomUITheme="):
+                    new_lines.append("General\\UseCustomUITheme=true\n")
+                    has_use_custom = True
+                    continue
+                elif stripped.startswith("General\\CustomUIThemePath="):
+                    new_lines.append(f"General\\CustomUIThemePath={theme_path}\n")
+                    has_theme_path = True
+                    continue
+
+            new_lines.append(line)
+
+        if in_preferences:
+            if not has_use_custom:
+                new_lines.append("General\\UseCustomUITheme=true\n")
+            if not has_theme_path:
+                new_lines.append(f"General\\CustomUIThemePath={theme_path}\n")
+
+        with open(QBT_CONF_PATH, "w", encoding="utf-8") as f:
+            f.writelines(new_lines)
+    except Exception as e:
+        sys.stderr.write(f"Error applying qBittorrent theme: {e}\n")
+
+def apply_alacritty_theme(mode):
+    if not os.path.exists(ALACRITTY_CONF_PATH):
+        return
+
+    theme_import = "dank-theme.toml" if mode == "dark" else "catppuccin-latte.toml"
+    try:
+        with open(ALACRITTY_CONF_PATH, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        new_content = re.sub(
+            r'~/\.config/alacritty/[a-zA-Z0-9_\-]+\.toml',
+            f'~/.config/alacritty/{theme_import}',
+            content
+        )
+
+        if new_content != content:
+            with open(ALACRITTY_CONF_PATH, "w", encoding="utf-8") as f:
+                f.write(new_content)
+    except Exception as e:
+        sys.stderr.write(f"Error applying Alacritty theme: {e}\n")
+
+def apply_kitty_theme(mode):
+    theme_include = "include ./dank-theme.conf\n" if mode == "dark" else "include ./kitty-themes/ayu_light.conf\n"
+    try:
+        with open(KITTY_THEME_PATH, "w", encoding="utf-8") as f:
+            f.write(theme_include)
+        subprocess.run(["pkill", "-USR1", "kitty"], check=False, stderr=subprocess.DEVNULL)
+    except Exception as e:
+        sys.stderr.write(f"Error applying Kitty theme: {e}\n")
+
+def apply_wezterm_theme(mode):
+    scheme = "Catppuccin Mocha" if mode == "dark" else "Catppuccin Latte"
+    try:
+        with open(WEZTERM_THEME_PATH, "w", encoding="utf-8") as f:
+            f.write(f'return "{scheme}"\n')
+    except Exception as e:
+        sys.stderr.write(f"Error applying WezTerm theme: {e}\n")
+
+def apply_all_themes(mode):
+    run_dms_matugen(mode)
+    apply_qbittorrent_theme(mode)
+    apply_alacritty_theme(mode)
+    apply_kitty_theme(mode)
+    apply_wezterm_theme(mode)
+
+def main():
+    current_mode = get_current_desktop_mode()
+    apply_all_themes(current_mode)
+
+    try:
+        proc_theme = subprocess.Popen(
+            ["gsettings", "monitor", "org.gnome.desktop.interface", "color-scheme"],
+            stdout=subprocess.PIPE,
+            text=True
+        )
+        proc_wall = subprocess.Popen(
+            ["gsettings", "monitor", "org.gnome.desktop.background", "picture-uri"],
+            stdout=subprocess.PIPE,
+            text=True
+        )
+
+        import select
+        poll = select.poll()
+        poll.register(proc_theme.stdout, select.POLLIN)
+        poll.register(proc_wall.stdout, select.POLLIN)
+
+        while True:
+            events = poll.poll()
+            for fd, event in events:
+                if fd == proc_theme.stdout.fileno():
+                    line = proc_theme.stdout.readline()
+                    val = line.strip().split(":")[-1].strip().strip("'\"")
+                    mode = "dark" if "prefer-dark" in val else "light"
+                    apply_all_themes(mode)
+                elif fd == proc_wall.stdout.fileno():
+                    _ = proc_wall.stdout.readline()
+                    current_mode = get_current_desktop_mode()
+                    apply_all_themes(current_mode)
+    except Exception as e:
+        sys.stderr.write(f"Monitor loop error: {e}\n")
+
+if __name__ == "__main__":
+    main()
