@@ -138,3 +138,4 @@ alias antigravity-cli="agy"
 export PGHOST=127.0.0.1
 export PGUSER=postgres
 export PGPASSWORD=P8x_mK9_vQ2L_zW5nJ7rT3aF6bY4cE1u
+alias dotfiles='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
