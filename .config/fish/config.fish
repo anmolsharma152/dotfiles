@@ -111,3 +111,4 @@ set -gx PGHOST 127.0.0.1
 set -gx PGUSER postgres
 set -gx PGPASSWORD P8x_mK9_vQ2L_zW5nJ7rT3aF6bY4cE1u
 abbr -a dotfiles 'git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
+mise activate fish | source
