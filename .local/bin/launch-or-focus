@@ -10,13 +10,15 @@ WINDOW_PATTERN="$1"
 LAUNCH_COMMAND="${2:-$WINDOW_PATTERN}"
 
 # Search for matching window address and workspace across all workspaces
+# 1. Exact class or initialClass match
 WINDOW_DATA=$(hyprctl clients -j 2>/dev/null | jq -r --arg p "$WINDOW_PATTERN" '
-  .[] | select((.class // "") | test("^" + $p + "$"; "i")) | "\(.address) \(.workspace.id)"
+  .[] | select((.class // "" | test("^" + $p + "$"; "i")) or (.initialClass // "" | test("^" + $p + "$"; "i"))) | "\(.address) \(.workspace.id)"
 ' | head -n1)
 
+# 2. Substring match on title / initialTitle if class did not match
 if [[ -z "$WINDOW_DATA" || "$WINDOW_DATA" == "null "* ]]; then
   WINDOW_DATA=$(hyprctl clients -j 2>/dev/null | jq -r --arg p "$WINDOW_PATTERN" '
-    .[] | select((.initialClass // "" | test("^" + $p + "$"; "i")) or (.title // "" | test("^" + $p + "$"; "i"))) | "\(.address) \(.workspace.id)"
+    .[] | select((.title // "" | test($p; "i")) or (.initialTitle // "" | test($p; "i"))) | "\(.address) \(.workspace.id)"
   ' | head -n1)
 fi
 

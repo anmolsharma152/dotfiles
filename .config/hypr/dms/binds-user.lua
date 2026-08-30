@@ -99,8 +99,15 @@ hl.bind("SUPER + G", hl.dsp.exec_cmd("ghostty"), { description = "Launch Ghostty
 hl.unbind("SUPER + K")
 hl.bind("SUPER + K", hl.dsp.exec_cmd("kitty"), { description = "Launch Kitty" })
 
+-- === Music & Volume Control ===
 hl.unbind("SUPER + M")
-hl.bind("SUPER + M", hl.dsp.exec_cmd("pavucontrol"), { description = "Audio Control (Pavucontrol)" })
+hl.bind("SUPER + M", hl.dsp.exec_cmd("launch-or-focus spotify spotify"), { description = "Music GUI: Spotify Open or Focus" })
+
+hl.unbind("SUPER + SHIFT + M")
+hl.bind("SUPER + SHIFT + M", hl.dsp.exec_cmd("launch-or-focus cliamp 'alacritty --title cliamp -e cliamp'"), { description = "Music TUI: cliamp Open or Focus" })
+
+hl.unbind("SUPER + CTRL + M")
+hl.bind("SUPER + CTRL + M", hl.dsp.exec_cmd("pavucontrol"), { description = "Audio Control (Pavucontrol)" })
 
 -- === Terminal (Super + Return) ===
 hl.unbind("SUPER + Return")
