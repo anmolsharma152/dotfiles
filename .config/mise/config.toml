@@ -17,7 +17,7 @@ biome = "latest"
 gh = "latest"
 supabase = "latest"
 railway = "latest"
-vercel = "latest"
+vercel = { version = "latest", trust_policy_excludes = ["fastq"] }
 "npm:@withgraphite/graphite-cli" = "latest"
 ruff = "latest"
 cargo-binstall = "latest"
