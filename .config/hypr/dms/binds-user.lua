@@ -71,6 +71,9 @@ hl.unbind("SUPER + SHIFT + D")
 hl.bind("SUPER + SHIFT + D", hl.dsp.exec_cmd("dms ipc call dash toggle \"\""), { description = "Dashboard: Toggle" })
 
 -- Super + S unbound
+-- Super + Shift + Space toggles top panel/bar (matching Omarchy)
+hl.unbind("SUPER + SHIFT + space")
+hl.bind("SUPER + SHIFT + space", hl.dsp.exec_cmd("dms ipc call bar toggle index 0"), { description = "Top Bar: Toggle" })
 hl.unbind("SUPER + S")
 
 hl.unbind("SUPER + E")
