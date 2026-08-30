@@ -58,7 +58,7 @@ hl.bind("SUPER + CTRL + V", hl.dsp.exec_cmd("dms ipc call clipboard toggle"), { 
 
 -- === Default Applications & Shell Menus ===
 hl.unbind("SUPER + B")
-hl.bind("SUPER + B", hl.dsp.exec_cmd("launch-or-focus '(zen-browser|zen|google-chrome|chromium|brave)' 'dms ipc call defaultApp browser'"), { description = "Default Web Browser: Open or Focus" })
+hl.bind("SUPER + B", hl.dsp.exec_cmd("dms ipc call defaultApp browser"), { description = "Default Web Browser: Open" })
 
 -- Super + Shift + C toggles Control Center
 hl.unbind("SUPER + SHIFT + C")
@@ -76,7 +76,7 @@ hl.bind("SUPER + SHIFT + space", hl.dsp.exec_cmd("dms ipc call bar toggle index 
 hl.unbind("SUPER + S")
 
 hl.unbind("SUPER + E")
-hl.bind("SUPER + E", hl.dsp.exec_cmd("launch-or-focus '(org.gnome.Nautilus|nautilus)' 'dms ipc call defaultApp fileManager'"), { description = "Default File Manager: Open or Focus" })
+hl.bind("SUPER + E", hl.dsp.exec_cmd("dms ipc call defaultApp fileManager"), { description = "Default File Manager: Open" })
 
 hl.unbind("SUPER + P")
 hl.bind("SUPER + P", hl.dsp.exec_cmd("dms ipc call powermenu toggle"), { description = "Power Menu: Toggle" })
