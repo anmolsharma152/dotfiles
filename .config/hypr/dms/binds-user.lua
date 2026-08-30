@@ -58,7 +58,7 @@ hl.bind("SUPER + CTRL + V", hl.dsp.exec_cmd("dms ipc call clipboard toggle"), { 
 
 -- === Default Applications & Shell Menus ===
 hl.unbind("SUPER + B")
-hl.bind("SUPER + B", hl.dsp.exec_cmd("dms ipc call defaultApp browser"), { description = "Default Web Browser: Open" })
+hl.bind("SUPER + B", hl.dsp.exec_cmd("launch-or-focus '(zen-browser|zen|google-chrome|chromium|brave)' 'dms ipc call defaultApp browser'"), { description = "Default Web Browser: Open or Focus" })
 
 -- Super + Shift + C toggles Control Center
 hl.unbind("SUPER + SHIFT + C")
@@ -70,14 +70,13 @@ hl.bind("SUPER + D", hl.dsp.exec_cmd("dms ipc call spotlight-bar toggle"), { des
 hl.unbind("SUPER + SHIFT + D")
 hl.bind("SUPER + SHIFT + D", hl.dsp.exec_cmd("dms ipc call dash toggle \"\""), { description = "Dashboard: Toggle" })
 
--- Super + S unbound
 -- Super + Shift + Space toggles top panel/bar (matching Omarchy)
 hl.unbind("SUPER + SHIFT + space")
 hl.bind("SUPER + SHIFT + space", hl.dsp.exec_cmd("dms ipc call bar toggle index 0"), { description = "Top Bar: Toggle" })
 hl.unbind("SUPER + S")
 
 hl.unbind("SUPER + E")
-hl.bind("SUPER + E", hl.dsp.exec_cmd("dms ipc call defaultApp fileManager"), { description = "Default File Manager: Open" })
+hl.bind("SUPER + E", hl.dsp.exec_cmd("launch-or-focus '(org.gnome.Nautilus|nautilus)' 'dms ipc call defaultApp fileManager'"), { description = "Default File Manager: Open or Focus" })
 
 hl.unbind("SUPER + P")
 hl.bind("SUPER + P", hl.dsp.exec_cmd("dms ipc call powermenu toggle"), { description = "Power Menu: Toggle" })
@@ -109,13 +108,13 @@ hl.bind("SUPER + Return", hl.dsp.exec_cmd("alacritty"), { description = "Launch 
 
 -- === GUI AI Apps (Super + A / Super + Shift + A / Super + Ctrl + A) ===
 hl.unbind("SUPER + A")
-hl.bind("SUPER + A", hl.dsp.exec_cmd("antigravity"), { description = "Launch Antigravity" })
+hl.bind("SUPER + A", hl.dsp.exec_cmd("launch-or-focus antigravity antigravity"), { description = "Antigravity: Open or Focus" })
 
 hl.unbind("SUPER + SHIFT + A")
-hl.bind("SUPER + SHIFT + A", hl.dsp.exec_cmd("chatgpt"), { description = "Launch ChatGPT" })
+hl.bind("SUPER + SHIFT + A", hl.dsp.exec_cmd("launch-or-focus chatgpt chatgpt"), { description = "ChatGPT: Open or Focus" })
 
 hl.unbind("SUPER + CTRL + A")
-hl.bind("SUPER + CTRL + A", hl.dsp.exec_cmd("opencode-desktop"), { description = "Launch OpenCode GUI" })
+hl.bind("SUPER + CTRL + A", hl.dsp.exec_cmd("launch-or-focus '(opencode-desktop|ai.opencode.desktop)' opencode-desktop"), { description = "OpenCode GUI: Open or Focus" })
 
 -- === TUI AI Agents (Super + T / Super + Shift + T / Super + Ctrl + T) ===
 hl.unbind("SUPER + T")
