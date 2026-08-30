@@ -1,5 +1,5 @@
 #!/bin/bash
-# launch-or-focus: Focus an existing window matching class/title across any workspace, or launch it
+# launch-or-focus: Focus an existing window and switch to its workspace, or launch it
 
 if (($# == 0)); then
   echo "Usage: launch-or-focus <window-pattern> [launch-command]" >&2
@@ -9,19 +9,22 @@ fi
 WINDOW_PATTERN="$1"
 LAUNCH_COMMAND="${2:-$WINDOW_PATTERN}"
 
-# Search for matching window address across all workspaces
-WINDOW_ADDRESS=$(hyprctl clients -j 2>/dev/null | jq -r --arg p "$WINDOW_PATTERN" '
-  .[] | select((.class // "") | test("^" + $p + "$"; "i")) | .address
+# Search for matching window address and workspace across all workspaces
+WINDOW_DATA=$(hyprctl clients -j 2>/dev/null | jq -r --arg p "$WINDOW_PATTERN" '
+  .[] | select((.class // "") | test("^" + $p + "$"; "i")) | "\(.address) \(.workspace.id)"
 ' | head -n1)
 
-if [[ -z "$WINDOW_ADDRESS" || "$WINDOW_ADDRESS" == "null" ]]; then
-  WINDOW_ADDRESS=$(hyprctl clients -j 2>/dev/null | jq -r --arg p "$WINDOW_PATTERN" '
-    .[] | select((.initialClass // "" | test("^" + $p + "$"; "i")) or (.title // "" | test("^" + $p + "$"; "i"))) | .address
+if [[ -z "$WINDOW_DATA" || "$WINDOW_DATA" == "null "* ]]; then
+  WINDOW_DATA=$(hyprctl clients -j 2>/dev/null | jq -r --arg p "$WINDOW_PATTERN" '
+    .[] | select((.initialClass // "" | test("^" + $p + "$"; "i")) or (.title // "" | test("^" + $p + "$"; "i"))) | "\(.address) \(.workspace.id)"
   ' | head -n1)
 fi
 
-if [[ -n "$WINDOW_ADDRESS" && "$WINDOW_ADDRESS" != "null" ]]; then
-  hyprctl dispatch focuswindow "address:$WINDOW_ADDRESS" >/dev/null 2>&1
+read -r ADDR WS <<< "$WINDOW_DATA"
+
+if [[ -n "$ADDR" && -n "$WS" && "$ADDR" != "null" && "$WS" != "null" ]]; then
+  hyprctl dispatch "hl.dsp.focus({ workspace = \"$WS\" })" >/dev/null 2>&1
+  hyprctl dispatch "hl.dsp.focus({ window = \"address:$ADDR\" })" >/dev/null 2>&1
 else
   eval exec setsid $LAUNCH_COMMAND &
 fi
