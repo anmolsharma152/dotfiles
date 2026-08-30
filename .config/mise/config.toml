@@ -1,7 +1,6 @@
 [tools]
 node = "latest"
 pnpm = "latest"
-rust = "latest"
 uv = "latest"
 go = "latest"
 opencode = "latest"

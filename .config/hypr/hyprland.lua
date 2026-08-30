@@ -13,7 +13,7 @@ hl.config({
 	input = {
 		kb_layout = "us",
 		numlock_by_default = true,
-		follow_mouse = 0,
+		follow_mouse = 1,
 		touchpad = {
 			tap_to_click = true,
 			natural_scroll = true,
@@ -43,6 +43,7 @@ hl.config({
 	},
 	dwindle = {
 		preserve_split = true,
+		force_split = 2,
 	},
 	master = {
 		mfact = 0.5,

@@ -1,0 +1,43 @@
+#!/bin/bash
+# Launch a coding agent in the active terminal directory, or ~/Projects fallback
+
+if (($# == 0)); then
+  echo "Usage: launch-agent <command> [args...]" >&2
+  exit 1
+fi
+
+get_target_cwd() {
+  local active_win=$(hyprctl activewindow -j 2>/dev/null)
+  local active_pid=$(echo "$active_win" | jq -r '.pid // empty' 2>/dev/null)
+  local active_class=$(echo "$active_win" | jq -r '.class // empty' 2>/dev/null)
+  local cwd=""
+
+  if [[ -n "$active_pid" && "$active_pid" != "null" && "$active_pid" != "0" ]]; then
+    local class_lower=$(echo "$active_class" | tr '[:upper:]' '[:lower:]')
+    if [[ "$class_lower" =~ alacritty|kitty|ghostty|wezterm|foot|kgx|terminal ]]; then
+      local shell_pid=$(pgrep -P "$active_pid" | tail -n1)
+      if [[ -n "$shell_pid" ]]; then
+        local sub_pid=$(pgrep -P "$shell_pid" | tail -n1)
+        if [[ -n "$sub_pid" && -d "/proc/$sub_pid/cwd" ]]; then
+          local sub_exe=$(readlink -f "/proc/$sub_pid/exe" 2>/dev/null)
+          if grep -Fqsx "$sub_exe" /etc/shells; then
+            shell_pid="$sub_pid"
+          fi
+        fi
+        cwd=$(readlink -f "/proc/$shell_pid/cwd" 2>/dev/null)
+      fi
+    fi
+  fi
+
+  # If cwd is empty, not a directory, or exactly $HOME, fallback to ~/Projects
+  if [[ -n "$cwd" && -d "$cwd" && "$cwd" != "$HOME" ]]; then
+    echo "$cwd"
+  elif [[ -d "$HOME/Projects" ]]; then
+    echo "$HOME/Projects"
+  else
+    echo "$HOME"
+  fi
+}
+
+target_cwd=$(get_target_cwd)
+exec alacritty --working-directory "$target_cwd" -e "$@"
