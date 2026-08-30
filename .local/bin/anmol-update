@@ -1,0 +1,145 @@
+#!/usr/bin/env bash
+# anmol-update: Comprehensive system and developer environment updater for user anmol
+
+set -eo pipefail
+
+START_TIME=$(date +%s)
+
+# Colors & Formatting
+BOLD="\033[1m"
+DIM="\033[2m"
+CYAN="\033[36m"
+GREEN="\033[32m"
+YELLOW="\033[33m"
+BLUE="\033[34m"
+MAGENTA="\033[35m"
+RED="\033[31m"
+RESET="\033[0m"
+
+log_step() {
+    echo -e "\n${BOLD}${CYAN}==>${RESET} ${BOLD}$1${RESET}"
+}
+
+log_info() {
+    echo -e "  ${BLUE}ℹ${RESET} $1"
+}
+
+log_success() {
+    echo -e "  ${GREEN}✔${RESET} $1"
+}
+
+log_warn() {
+    echo -e "  ${YELLOW}⚠${RESET} $1"
+}
+
+log_error() {
+    echo -e "  ${RED}✖${RESET} $1"
+}
+
+# Banner
+echo -e "${BOLD}${MAGENTA}┌────────────────────────────────────────────────────────────┐${RESET}"
+echo -e "${BOLD}${MAGENTA}│${RESET}        ${BOLD}${CYAN}⚡ Archbox / Anmol Comprehensive Workstation Update${RESET}  ${BOLD}${MAGENTA}│${RESET}"
+echo -e "${BOLD}${MAGENTA}└────────────────────────────────────────────────────────────┘${RESET}"
+
+# Parse flags
+NON_INTERACTIVE=false
+if [[ "$1" == "-y" || "$1" == "--noconfirm" || "$1" == "--unattended" ]]; then
+    NON_INTERACTIVE=true
+fi
+
+# 1. System Snapshot (Btrfs / Snapper)
+log_step "1/6: Checking System Restore Point (Snapper)..."
+if command -v snapper &>/dev/null; then
+    if sudo snapper -c root create -d "Before anmol-update $(date '+%Y-%m-%d %H:%M')" 2>/dev/null; then
+        log_success "Created Btrfs root snapshot successfully."
+    else
+        log_warn "Could not create root snapshot (skipping)."
+    fi
+else
+    log_info "Snapper not detected, skipping pre-update snapshot."
+fi
+
+# 2. Arch Linux & AUR Package Upgrades
+log_step "2/6: Upgrading Arch Linux & AUR Packages (paru)..."
+if command -v paru &>/dev/null; then
+    if [[ "$NON_INTERACTIVE" == "true" ]]; then
+        paru -Syu --noconfirm
+    else
+        paru -Syu
+    fi
+    log_success "System & AUR packages up to date."
+elif command -v yay &>/dev/null; then
+    if [[ "$NON_INTERACTIVE" == "true" ]]; then
+        yay -Syu --noconfirm
+    else
+        yay -Syu
+    fi
+    log_success "System & AUR packages up to date."
+else
+    if [[ "$NON_INTERACTIVE" == "true" ]]; then
+        sudo pacman -Syu --noconfirm
+    else
+        sudo pacman -Syu
+    fi
+    log_success "Arch Linux core packages up to date."
+fi
+
+# 3. Flatpak Applications (if installed)
+log_step "3/6: Checking Flatpak Applications..."
+if command -v flatpak &>/dev/null; then
+    flatpak_count=$(flatpak list --app 2>/dev/null | wc -l)
+    if (( flatpak_count > 0 )); then
+        flatpak update -y
+        log_success "Flatpak applications updated."
+    else
+        log_info "No Flatpak applications installed."
+    fi
+else
+    log_info "Flatpak not installed, skipping."
+fi
+
+# 4. Mise Developer Toolchain, Runtimes & AI Agents
+log_step "4/6: Upgrading Mise Tools & AI Agents (Immediate / Cooldown Bypassed)..."
+if command -v mise &>/dev/null; then
+    MISE_MINIMUM_RELEASE_AGE=0 mise up
+    log_success "Mise programming languages, developer tools, and AI agents upgraded."
+    
+    # Prune stale tool versions to reclaim disk space
+    mise prune -y 2>/dev/null || true
+    log_success "Pruned legacy uninstalled Mise tool builds."
+else
+    log_warn "Mise not found in PATH."
+fi
+
+# 5. Package Cache Optimization
+log_step "5/6: Optimizing Package Cache (Keeping last 2 versions)..."
+if command -v paccache &>/dev/null; then
+    sudo paccache -rk2 -q 2>/dev/null || true
+    sudo paccache -ruk0 -q 2>/dev/null || true
+    log_success "Package cache pruned (reclaimed disk space)."
+fi
+
+# 6. Kernel & Reboot Detection
+log_step "6/6: Verifying Kernel & Service Status..."
+RUNNING_KERNEL=$(uname -r)
+INSTALLED_KERNEL=$(pacman -Q linux 2>/dev/null | awk '{print $2}' || true)
+REBOOT_NEEDED=false
+
+if [[ -n "$INSTALLED_KERNEL" && "$RUNNING_KERNEL" != *"$INSTALLED_KERNEL"* ]]; then
+    if [[ ! -d "/usr/lib/modules/$RUNNING_KERNEL" ]]; then
+        REBOOT_NEEDED=true
+    fi
+fi
+
+END_TIME=$(date +%s)
+DURATION=$((END_TIME - START_TIME))
+
+echo -e "\n${BOLD}${GREEN}============================================================${RESET}"
+echo -e "${BOLD}${GREEN}✔ All updates completed successfully in ${DURATION}s!${RESET}"
+echo -e "${BOLD}${GREEN}============================================================${RESET}"
+
+if [[ "$REBOOT_NEEDED" == "true" ]]; then
+    echo -e "${BOLD}${YELLOW}⚠ A kernel update was installed. A system restart is recommended when convenient.${RESET}\n"
+else
+    echo -e "${DIM}System and developer environments are in sync.${RESET}\n"
+fi

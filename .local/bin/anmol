@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# anmol: Unified CLI hub for user anmol
+
+case "$1" in
+    update|up)
+        shift
+        exec anmol-update "$@"
+        ;;
+    dotfiles|dots)
+        shift
+        exec /usr/bin/git --git-dir="$HOME/.dotfiles/" --work-tree="$HOME" "$@"
+        ;;
+    clean)
+        echo "Running system & cache cleanups..."
+        sudo paccache -rk1 -q 2>/dev/null || true
+        command -v mise &>/dev/null && mise prune -y
+        command -v paru &>/dev/null && paru -Sc --noconfirm 2>/dev/null || true
+        echo "Done."
+        ;;
+    status|info)
+        fastfetch 2>/dev/null || uname -a
+        ;;
+    -h|--help|help|"")
+        echo -e "\033[1mUsage:\033[0m anmol <command> [options]"
+        echo ""
+        echo -e "\033[1mCommands:\033[0m"
+        echo "  update, up      Run comprehensive system, AUR, and Mise toolchain updates"
+        echo "  dotfiles, dots  Run git commands against user dotfiles bare repository"
+        echo "  clean           Prune package and Mise caches to reclaim disk space"
+        echo "  status, info    Show system information overview"
+        echo ""
+        ;;
+    *)
+        echo "Unknown command: $1"
+        echo "Run 'anmol --help' for available commands."
+        exit 1
+        ;;
+esac
